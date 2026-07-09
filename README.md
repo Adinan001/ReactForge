@@ -19,7 +19,7 @@ O ReactForge acessa uma página web, analisa sua estrutura completa, baixa todos
 - Favicons (icon, apple-touch-icon, mask-icon) com tamanhos
 - manifest.json
 - Preload / Prefetch / DNS-Prefetch / Preconnect / Modulepreload
-- Vídeos (`<video>`) e Áudios (`<audio>`)
+- Vídeos e Áudios
 - Iframes (incluindo lazy loading via `data-src`)
 - Fontes (preload + `@font-face` inline)
 - Meta tags completas (charset, description, viewport)
@@ -30,7 +30,7 @@ O ReactForge acessa uma página web, analisa sua estrutura completa, baixa todos
 
 ### Download de Assets
 - CSS, JavaScript, imagens, favicons, manifest, fonts
-- Organização automática por tipo (`assets/css`, `assets/js`, `assets/images`, `assets/fonts`, `assets/others`)
+- Organização automática por tipo
 - Cache de downloads para evitar duplicatas
 
 ### Reescrita de URLs para Offline
@@ -39,7 +39,7 @@ O ReactForge acessa uma página web, analisa sua estrutura completa, baixa todos
 - `srcset` completo com descriptors preservados
 - Inline styles e tags `<style>` com `url()`
 - Meta tags Open Graph e Twitter Cards
-- Remoção automática de `integrity` e `crossorigin` (quebram abertura local)
+- Remoção automática de `integrity` e `crossorigin`
 
 ### Crawler Multi-Página
 - Varredura automática de links internos
@@ -49,7 +49,7 @@ O ReactForge acessa uma página web, analisa sua estrutura completa, baixa todos
 
 ### Relatórios
 - Relatório JSON com análise completa
-- Log detalhado no terminal com emojis e seções organizadas
+- Log detalhado no terminal com seções organizadas
 
 ---
 
@@ -82,27 +82,35 @@ O clone será salvo em `sites/<dominio>/` com toda a estrutura de assets organiz
 ---
 
 ## 📂 Estrutura do Projeto
+
+```text
 ReactForge/
+│
 ├── src/
+│   ├── index.js
+│   │
 │   ├── crawler/
-│   │   ├── analyzer.js            # Análise completa do HTML
-│   │   ├── resourceDetector.js    # Detecção de recursos especiais
-│   │   ├── htmlRewriter.js        # Reescrita de URLs para offline
-│   │   ├── crawler.js             # Motor principal do crawler
-│   │   ├── siteCrawler.js         # Crawler multi-página
-│   │   ├── assetDownloader.js     # Download de assets
-│   │   ├── cssAssetCollector.js   # Coleta de assets em CSS
-│   │   ├── cssRewriter.js         # Reescrita de URLs em CSS
-│   │   ├── downloadCache.js       # Cache de downloads
-│   │   ├── fileOrganizer.js       # Organização de arquivos por tipo
-│   │   ├── linkCollector.js       # Coleta de links internos
-│   │   └── urlResolver.js         # Resolução de URLs relativas
-│   ├── reports/
-│   │   └── reporter.js            # Geração de relatórios JSON
-│   └── index.js                   # Entry point
-├── sites/                         # Output dos clones
+│   │   ├── analyzer.js
+│   │   ├── resourceDetector.js
+│   │   ├── htmlRewriter.js
+│   │   ├── crawler.js
+│   │   ├── siteCrawler.js
+│   │   ├── assetDownloader.js
+│   │   ├── cssAssetCollector.js
+│   │   ├── cssRewriter.js
+│   │   ├── downloadCache.js
+│   │   ├── fileOrganizer.js
+│   │   ├── linkCollector.js
+│   │   └── urlResolver.js
+│   │
+│   └── reports/
+│       └── reporter.js
+│
+├── sites/
 ├── package.json
 └── README.md
+```
+
 ---
 
 ## 📌 Roadmap
@@ -118,9 +126,9 @@ ReactForge/
 - [x] Relatório JSON
 
 ### 🔜 Próximas Fases
-- [ ] **CSS Rewriter** — Reescrita de URLs dentro dos arquivos CSS (background-image, @font-face, @import)
-- [ ] **Playwright** — Renderização JavaScript para SPAs (React, Vue, Next.js)
-- [ ] **CLI Profissional** — Flags: `--depth`, `--max-pages`, `--output`, `--timeout`, `--user-agent`
+- [ ] **CSS Rewriter** — Reescrita de URLs dentro dos arquivos CSS
+- [ ] **Playwright** — Renderização JavaScript para SPAs
+- [ ] **CLI Profissional** — Flags: `--depth`, `--max-pages`, `--output`, `--timeout`
 - [ ] **Download Paralelo** — Concorrência controlada com retry e backoff
 - [ ] **Export** — ZIP, single-file HTML, PDF, relatório de cobertura
 - [ ] **NPM Publish** — `npm install -g reactforge`
