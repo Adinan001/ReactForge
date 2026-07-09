@@ -1,7 +1,6 @@
 import axios from "axios";
 import fs from "fs";
 import path from "path";
-
 import { analyzeHTML } from "./analyzer.js";
 import { collectInternalLinks } from "./linkCollector.js";
 import { downloadAssets } from "./assetDownloader.js";
@@ -16,11 +15,14 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
 
         const currentUrl = queue.shift();
 
-        if (visited.has(currentUrl)) {
+        // Normaliza URL removendo trailing slash pra evitar duplicata
+        const normalized = currentUrl.replace(/\/+$/, "") || currentUrl;
+
+        if (visited.has(normalized)) {
             continue;
         }
 
-        visited.add(currentUrl);
+        visited.add(normalized);
 
         console.log("");
         console.log("📄 Página:", currentUrl);
@@ -28,107 +30,67 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
         try {
 
             const response = await axios.get(currentUrl);
-
             let html = response.data;
 
             const analysis = analyzeHTML(html);
 
-            await downloadAssets(
-                currentUrl,
-                analysis.css,
-                siteFolder
-            );
+            await downloadAssets(currentUrl, analysis.css, siteFolder);
+            await downloadAssets(currentUrl, analysis.scripts, siteFolder);
+            await downloadAssets(currentUrl, analysis.images, siteFolder);
 
-            await downloadAssets(
-                currentUrl,
-                analysis.scripts,
-                siteFolder
-            );
+            // Download dos favicons e manifest detectados
+            const res = analysis.resources;
 
-            await downloadAssets(
-                currentUrl,
-                analysis.images,
-                siteFolder
-            );
+            const faviconUrls = res.favicons.map(f => f.href).filter(Boolean);
+            if (faviconUrls.length > 0) {
+                await downloadAssets(currentUrl, faviconUrls, siteFolder);
+            }
 
-            html = rewriteHTML(html);
+            if (res.manifest && res.manifest.href) {
+                await downloadAssets(currentUrl, [res.manifest.href], siteFolder);
+            }
 
+            // Reescreve URLs para caminhos locais
+            html = rewriteHTML(html, currentUrl);
+
+            // Determina caminho do arquivo
             const url = new URL(currentUrl);
-
             let pagePath = url.pathname;
 
             if (pagePath === "" || pagePath === "/") {
-
                 pagePath = "index.html";
-
             } else {
-
                 pagePath = pagePath.replace(/^\/+/, "");
-
                 if (!pagePath.endsWith(".html")) {
-
-                    pagePath = path.join(
-                        pagePath,
-                        "index.html"
-                    );
-
+                    pagePath = path.join(pagePath, "index.html");
                 }
-
             }
 
-            const fullPath = path.join(
-                siteFolder,
-                pagePath
-            );
+            const fullPath = path.join(siteFolder, pagePath);
 
-            fs.mkdirSync(
-                path.dirname(fullPath),
-                {
-                    recursive: true
-                }
-            );
-
-            fs.writeFileSync(
-                fullPath,
-                html
-            );
+            fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+            fs.writeFileSync(fullPath, html);
 
             console.log("💾", fullPath);
 
-            const internalLinks = collectInternalLinks(
-                currentUrl,
-                analysis.links
-            );
+            // Coleta links internos pra continuar o crawl
+            const internalLinks = collectInternalLinks(currentUrl, analysis.links);
 
             for (const page of internalLinks) {
-
-                if (
-                    !visited.has(page) &&
-                    !queue.includes(page)
-                ) {
-
+                const norm = page.replace(/\/+$/, "") || page;
+                if (!visited.has(norm) && !queue.includes(page)) {
                     queue.push(page);
-
                 }
-
             }
 
         } catch (error) {
-
-            console.log(
-                "⚠️ Erro:",
-                error.message
-            );
-
+            console.log("⚠️ Erro:", error.message);
         }
 
     }
 
     console.log("");
-    console.log(
-        "✅ Páginas visitadas:",
-        visited.size
-    );
+    console.log("✅ Páginas visitadas:", visited.size);
 
     return [...visited];
 

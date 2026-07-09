@@ -41,13 +41,9 @@ export async function downloadAssets(baseUrl, assets, siteFolder) {
 
             let data = response.data;
 
-            if (destination.endsWith(".css")) {
+            if (path.extname(destination).toLowerCase() === ".css") {
 
                 const css = Buffer.from(data).toString("utf8");
-
-                const rewritten = rewriteCSS(css);
-
-                data = Buffer.from(rewritten, "utf8");
 
                 const cssAssets = collectCSSAssets(css);
 
@@ -56,6 +52,10 @@ export async function downloadAssets(baseUrl, assets, siteFolder) {
                     cssAssets,
                     siteFolder
                 );
+
+                const rewritten = rewriteCSS(css);
+
+                data = Buffer.from(rewritten, "utf8");
 
             }
 

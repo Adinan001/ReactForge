@@ -1,56 +1,106 @@
 import * as cheerio from "cheerio";
+import { detectResources, resourceSummary } from "./resourceDetector.js";
 
 export function analyzeHTML(html) {
 
     const $ = cheerio.load(html);
 
-    const css = [];
+    const css     = [];
     const scripts = [];
-    const images = [];
-    const links = [];
+    const images  = [];
+    const links   = [];
 
-    $("link[rel='stylesheet']").each((_, element) => {
-        const href = $(element).attr("href");
+    // ── Stylesheets ─────────────────────────────────────────────────
 
-        if (href) {
-            css.push(href);
+    $("link[rel~='stylesheet']").each((_, el) => {
+
+        const href = $(el).attr("href");
+        if (href) css.push(href);
+
+    });
+
+    // ── Scripts ─────────────────────────────────────────────────────
+
+    $("script[src]").each((_, el) => {
+
+        const src = $(el).attr("src");
+        if (src) scripts.push(src);
+
+    });
+
+    // ── Imagens (img + picture > source + srcset) ───────────────────
+
+    $("img[src]").each((_, el) => {
+
+        const src = $(el).attr("src");
+        if (src) images.push(src);
+
+        const srcset = $(el).attr("srcset");
+        if (srcset) {
+            parseSrcset(srcset).forEach(url => images.push(url));
+        }
+
+    });
+
+    $("picture source[srcset]").each((_, el) => {
+        const srcset = $(el).attr("srcset");
+        if (srcset) {
+            parseSrcset(srcset).forEach(url => images.push(url));
         }
     });
 
-    $("script[src]").each((_, element) => {
-        const src = $(element).attr("src");
+    // ── Links ───────────────────────────────────────────────────────
 
-        if (src) {
-            scripts.push(src);
-        }
+    $("a[href]").each((_, el) => {
+
+        const href = $(el).attr("href");
+        if (href) links.push(href);
+
     });
 
-    $("img").each((_, element) => {
-        const src = $(element).attr("src");
+    // ── Recursos especiais (novo módulo) ────────────────────────────
 
-        if (src) {
-            images.push(src);
-        }
-    });
-
-    $("a").each((_, element) => {
-        const href = $(element).attr("href");
-
-        if (href) {
-            links.push(href);
-        }
-    });
+    const resources = detectResources(html);
 
     return {
-        title: $("title").text().trim() || "Não encontrado",
+
+        title: extractCleanTitle($),
 
         links,
-
         css,
-
         scripts,
+        images: [...new Set(images)],
 
-        images
+        resources,
+
+        summary: {
+            links:   links.length,
+            css:     css.length,
+            scripts: scripts.length,
+            images:  [...new Set(images)].length,
+            ...resourceSummary(resources),
+        },
+
     };
 
+}
+
+
+// ── Helpers ─────────────────────────────────────────────────────────
+
+function extractCleanTitle($) {
+
+    const titleEl = $("title");
+
+    if (!titleEl.length) return "Não encontrado";
+
+    return titleEl.first().text().trim() || "Não encontrado";
+}
+
+function parseSrcset(srcset) {
+
+    return srcset
+        .split(",")
+        .map(entry => entry.trim().split(/\s+/)[0])
+        .filter(url => url && url.length > 0);
 }
