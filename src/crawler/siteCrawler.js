@@ -5,6 +5,7 @@ import path from "path";
 import { analyzeHTML } from "./analyzer.js";
 import { collectInternalLinks } from "./linkCollector.js";
 import { downloadAssets } from "./assetDownloader.js";
+import { rewriteHTML } from "./htmlRewriter.js";
 
 export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
 
@@ -28,9 +29,29 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
 
             const response = await axios.get(currentUrl);
 
-            const html = response.data;
+            let html = response.data;
 
             const analysis = analyzeHTML(html);
+
+            await downloadAssets(
+                currentUrl,
+                analysis.css,
+                siteFolder
+            );
+
+            await downloadAssets(
+                currentUrl,
+                analysis.scripts,
+                siteFolder
+            );
+
+            await downloadAssets(
+                currentUrl,
+                analysis.images,
+                siteFolder
+            );
+
+            html = rewriteHTML(html);
 
             const url = new URL(currentUrl);
 
@@ -46,44 +67,34 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
 
                 if (!pagePath.endsWith(".html")) {
 
-                    pagePath = path.join(pagePath, "index.html");
+                    pagePath = path.join(
+                        pagePath,
+                        "index.html"
+                    );
 
                 }
 
             }
 
-            const fullPath = path.join(siteFolder, pagePath);
+            const fullPath = path.join(
+                siteFolder,
+                pagePath
+            );
 
-            fs.mkdirSync(path.dirname(fullPath), {
-                recursive: true
-            });
+            fs.mkdirSync(
+                path.dirname(fullPath),
+                {
+                    recursive: true
+                }
+            );
 
-            fs.writeFileSync(fullPath, html);
+            fs.writeFileSync(
+                fullPath,
+                html
+            );
 
             console.log("💾", fullPath);
 
-            // Baixa CSS
-            await downloadAssets(
-                currentUrl,
-                analysis.css,
-                path.join(siteFolder, "css")
-            );
-
-            // Baixa JavaScript
-            await downloadAssets(
-                currentUrl,
-                analysis.scripts,
-                path.join(siteFolder, "js")
-            );
-
-            // Baixa imagens
-            await downloadAssets(
-                currentUrl,
-                analysis.images,
-                path.join(siteFolder, "img")
-            );
-
-            // Descobre novas páginas
             const internalLinks = collectInternalLinks(
                 currentUrl,
                 analysis.links
@@ -104,14 +115,20 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
 
         } catch (error) {
 
-            console.log("⚠️ Erro:", error.message);
+            console.log(
+                "⚠️ Erro:",
+                error.message
+            );
 
         }
 
     }
 
     console.log("");
-    console.log("✅ Páginas visitadas:", visited.size);
+    console.log(
+        "✅ Páginas visitadas:",
+        visited.size
+    );
 
     return [...visited];
 

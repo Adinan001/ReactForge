@@ -5,6 +5,7 @@ import path from "path";
 import { analyzeHTML } from "./analyzer.js";
 import { downloadAssets } from "./assetDownloader.js";
 import { crawlSite } from "./siteCrawler.js";
+import { rewriteHTML } from "./htmlRewriter.js";
 
 export async function startCrawler(url) {
 
@@ -16,14 +17,13 @@ export async function startCrawler(url) {
 
         const response = await axios.get(url);
 
-        const html = response.data;
+        let html = response.data;
 
         console.log("");
         console.log("✅ Site acessado com sucesso!");
         console.log("📄 Status:", response.status);
         console.log("📏 Tamanho HTML:", html.length, "caracteres");
 
-        // Nome da pasta do site
         const siteName = new URL(url).hostname.replace(/^www\./, "");
 
         const siteFolder = path.join("sites", siteName);
@@ -32,15 +32,6 @@ export async function startCrawler(url) {
             recursive: true
         });
 
-        // Salva a página inicial
-        fs.writeFileSync(
-            path.join(siteFolder, "index.html"),
-            html
-        );
-
-        console.log("💾 HTML salvo:", path.join(siteFolder, "index.html"));
-
-        // Analisa a página inicial
         const analysis = analyzeHTML(html);
 
         console.log("");
@@ -52,23 +43,34 @@ export async function startCrawler(url) {
         console.log("🖼️ Imagens encontradas:", analysis.images.length);
         console.log("=============================");
 
-        // Baixa os assets da página inicial
         await downloadAssets(
             url,
             analysis.css,
-            path.join(siteFolder, "css")
+            siteFolder
         );
 
         await downloadAssets(
             url,
             analysis.scripts,
-            path.join(siteFolder, "js")
+            siteFolder
         );
 
         await downloadAssets(
             url,
             analysis.images,
-            path.join(siteFolder, "img")
+            siteFolder
+        );
+
+        html = rewriteHTML(html);
+
+        fs.writeFileSync(
+            path.join(siteFolder, "index.html"),
+            html
+        );
+
+        console.log(
+            "💾 HTML salvo:",
+            path.join(siteFolder, "index.html")
         );
 
         console.log("");
