@@ -2,9 +2,12 @@ import * as cheerio from "cheerio";
 import { resolveUrl } from "./urlResolver.js";
 import { getAssetPath } from "./fileOrganizer.js";
 
-export function rewriteHTML(html, baseUrl) {
+export function rewriteHTML(html, baseUrl, pagePath = "index.html") {
 
     const $ = cheerio.load(html);
+
+    // Calcula prefixo relativo baseado na profundidade da página
+    const prefix = getDepthPrefix(pagePath);
 
     // ── Atributos simples (src, href, poster, data-src) ─────────────
 
@@ -43,7 +46,7 @@ export function rewriteHTML(html, baseUrl) {
             const localPath = getAssetPath(absolute);
             if (!localPath) return;
 
-            $(el).attr(item.attribute, localPath.replace(/\\/g, "/"));
+            $(el).attr(item.attribute, prefix + localPath.replace(/\\/g, "/"));
 
         });
 
@@ -63,7 +66,7 @@ export function rewriteHTML(html, baseUrl) {
             const srcset = $(el).attr("srcset");
             if (!srcset) return;
 
-            const rewritten = rewriteSrcset(srcset, baseUrl);
+            const rewritten = rewriteSrcset(srcset, baseUrl, prefix);
             $(el).attr("srcset", rewritten);
 
         });
@@ -77,7 +80,7 @@ export function rewriteHTML(html, baseUrl) {
         const style = $(el).attr("style");
         if (!style || !style.includes("url(")) return;
 
-        const rewritten = rewriteCssUrls(style, baseUrl);
+        const rewritten = rewriteCssUrls(style, baseUrl, prefix);
         $(el).attr("style", rewritten);
 
     });
@@ -89,7 +92,7 @@ export function rewriteHTML(html, baseUrl) {
         const css = $(el).html();
         if (!css || !css.includes("url(")) return;
 
-        $(el).html(rewriteCssUrls(css, baseUrl));
+        $(el).html(rewriteCssUrls(css, baseUrl, prefix));
 
     });
 
@@ -122,7 +125,7 @@ export function rewriteHTML(html, baseUrl) {
             const localPath = getAssetPath(absolute);
             if (!localPath) return;
 
-            $(el).attr("content", localPath.replace(/\\/g, "/"));
+            $(el).attr("content", prefix + localPath.replace(/\\/g, "/"));
 
         });
 
@@ -135,6 +138,25 @@ export function rewriteHTML(html, baseUrl) {
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
+function getDepthPrefix(pagePath) {
+
+    // pagePath: "index.html" → "" (raiz)
+    // pagePath: "docs/5.3/index.html" → "../../"
+    // pagePath: "docs/5.3/components/alerts/index.html" → "../../../../"
+
+    const normalized = pagePath.replace(/\\/g, "/");
+    const dir = normalized.includes("/")
+        ? normalized.substring(0, normalized.lastIndexOf("/"))
+        : "";
+
+    if (!dir) return "";
+
+    const depth = dir.split("/").length;
+
+    return "../".repeat(depth);
+
+}
+
 function isDataOrAnchor(url) {
 
     return url.startsWith("data:")
@@ -145,7 +167,7 @@ function isDataOrAnchor(url) {
 
 }
 
-function rewriteSrcset(srcset, baseUrl) {
+function rewriteSrcset(srcset, baseUrl, prefix) {
 
     return srcset
         .split(",")
@@ -165,16 +187,16 @@ function rewriteSrcset(srcset, baseUrl) {
             const localPath = getAssetPath(absolute);
             if (!localPath) return entry.trim();
 
-            return descriptor
-                ? `${localPath.replace(/\\/g, "/")} ${descriptor}`
-                : localPath.replace(/\\/g, "/");
+            const full = prefix + localPath.replace(/\\/g, "/");
+
+            return descriptor ? `${full} ${descriptor}` : full;
 
         })
         .join(", ");
 
 }
 
-function rewriteCssUrls(css, baseUrl) {
+function rewriteCssUrls(css, baseUrl, prefix) {
 
     return css.replace(
         /url\(\s*(['"]?)([^'")]+)\1\s*\)/g,
@@ -188,7 +210,7 @@ function rewriteCssUrls(css, baseUrl) {
             const localPath = getAssetPath(absolute);
             if (!localPath) return match;
 
-            return `url(${quote}${localPath.replace(/\\/g, "/")}${quote})`;
+            return `url(${quote}${prefix}${localPath.replace(/\\/g, "/")}${quote})`;
 
         }
     );

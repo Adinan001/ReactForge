@@ -194,7 +194,7 @@ export async function startCrawler(url, options = {}) {
 
         // ── Salvar HTML ─────────────────────────────────────────────
 
-        html = rewriteHTML(html, url);
+        html = rewriteHTML(html, url, "index.html");
 
         fs.writeFileSync(
             path.join(siteFolder, "index.html"),

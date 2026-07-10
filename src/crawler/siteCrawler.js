@@ -50,9 +50,6 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
                 await downloadAssets(currentUrl, [res.manifest.href], siteFolder);
             }
 
-            // Reescreve URLs para caminhos locais
-            html = rewriteHTML(html, currentUrl);
-
             // Determina caminho do arquivo
             const url = new URL(currentUrl);
             let pagePath = url.pathname;
@@ -65,6 +62,9 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
                     pagePath = path.join(pagePath, "index.html");
                 }
             }
+
+            // Reescreve URLs com profundidade correta
+            html = rewriteHTML(html, currentUrl, pagePath);
 
             const fullPath = path.join(siteFolder, pagePath);
 
