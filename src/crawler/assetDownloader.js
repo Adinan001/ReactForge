@@ -5,7 +5,7 @@ import path from "path";
 import { resolveUrl } from "./urlResolver.js";
 import { rewriteCSS } from "./cssRewriter.js";
 import { collectCSSAssets } from "./cssAssetCollector.js";
-import { getAssetPath } from "./fileOrganizer.js";
+import { getAssetPath, isTrackingUrl } from "./fileOrganizer.js";
 
 export async function downloadAssets(baseUrl, assets, siteFolder) {
 
@@ -19,7 +19,17 @@ export async function downloadAssets(baseUrl, assets, siteFolder) {
                 continue;
             }
 
+            // Ignora tracking pixels e analytics
+            if (isTrackingUrl(url)) {
+                continue;
+            }
+
             const relativePath = getAssetPath(url);
+
+            // getAssetPath retorna null pra URLs de tracking
+            if (!relativePath) {
+                continue;
+            }
 
             const destination = path.join(
                 siteFolder,
@@ -36,12 +46,19 @@ export async function downloadAssets(baseUrl, assets, siteFolder) {
             }
 
             const response = await axios.get(url, {
-                responseType: "arraybuffer"
+                responseType: "arraybuffer",
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                },
             });
 
             let data = response.data;
 
-            if (path.extname(destination).toLowerCase() === ".css") {
+            // Processa arquivos CSS (incluindo Google Fonts CSS)
+            const ext = path.extname(destination).toLowerCase();
+            const isCSS = ext === ".css" || response.headers["content-type"]?.includes("text/css");
+
+            if (isCSS) {
 
                 const css = Buffer.from(data).toString("utf8");
 
@@ -68,10 +85,13 @@ export async function downloadAssets(baseUrl, assets, siteFolder) {
 
         } catch (error) {
 
-            console.log(
-                "⚠️ Não foi possível baixar:",
-                asset
-            );
+            // Silencia erros de tracking e recursos não-essenciais
+            if (!isTrackingUrl(asset)) {
+                console.log(
+                    "⚠️ Não foi possível baixar:",
+                    asset
+                );
+            }
 
         }
 

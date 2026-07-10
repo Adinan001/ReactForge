@@ -41,6 +41,8 @@ export function rewriteHTML(html, baseUrl) {
             if (!absolute) return;
 
             const localPath = getAssetPath(absolute);
+            if (!localPath) return;
+
             $(el).attr(item.attribute, localPath.replace(/\\/g, "/"));
 
         });
@@ -118,6 +120,8 @@ export function rewriteHTML(html, baseUrl) {
             if (!absolute) return;
 
             const localPath = getAssetPath(absolute);
+            if (!localPath) return;
+
             $(el).attr("content", localPath.replace(/\\/g, "/"));
 
         });
@@ -158,9 +162,12 @@ function rewriteSrcset(srcset, baseUrl) {
             const absolute = resolveUrl(baseUrl, url);
             if (!absolute) return entry.trim();
 
-            const localPath = getAssetPath(absolute).replace(/\\/g, "/");
+            const localPath = getAssetPath(absolute);
+            if (!localPath) return entry.trim();
 
-            return descriptor ? `${localPath} ${descriptor}` : localPath;
+            return descriptor
+                ? `${localPath.replace(/\\/g, "/")} ${descriptor}`
+                : localPath.replace(/\\/g, "/");
 
         })
         .join(", ");
@@ -178,9 +185,10 @@ function rewriteCssUrls(css, baseUrl) {
             const absolute = resolveUrl(baseUrl, url);
             if (!absolute) return match;
 
-            const localPath = getAssetPath(absolute).replace(/\\/g, "/");
+            const localPath = getAssetPath(absolute);
+            if (!localPath) return match;
 
-            return `url(${quote}${localPath}${quote})`;
+            return `url(${quote}${localPath.replace(/\\/g, "/")}${quote})`;
 
         }
     );
