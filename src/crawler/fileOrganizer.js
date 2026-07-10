@@ -60,6 +60,35 @@ const TRACKING_HOSTS = [
     "ad.doubleclick.net",
     "cdn.segment.com",
     "cdn.mxpnl.com",
+    "static.ads-twitter.com",
+    "ads.twitter.com",
+    "t.co",
+    "ct.pinterest.com",
+    "www.redditstatic.com",
+    "alb.reddit.com",
+    "sb.scorecardresearch.com",
+    "cdn.taboola.com",
+    "trc.taboola.com",
+    "cdn.outbrain.com",
+    "widgets.outbrain.com",
+    "js.hs-analytics.net",
+    "track.hubspot.com",
+    "sslwidget.criteo.com",
+    "dis.criteo.com",
+    "bid.g.doubleclick.net",
+    "pagead2.googlesyndication.com",
+    "adservice.google.com",
+    "www.googleadservices.com",
+    "cdn.carbonads.com",
+    "srv.carbonads.net",
+    "ad.carbonads.net",
+    "buysellads.com",
+    "s.buysellads.com",
+    "servedby-buysellads.com",
+    "cdn4.buysellads.net",
+    "dsp.buysellads.com",
+    "ib.adnxs.com",
+    "secure.adnxs.com",
 ];
 
 export function getAssetPath(assetUrl) {
@@ -153,7 +182,12 @@ export function isTrackingUrl(urlOrString) {
 
     // Pixels de tracking comuns (1x1 images, sem extensão)
     const pathname = parsed.pathname.toLowerCase();
-    const trackingPaths = ["/pixel", "/pxl", "/seg", "/px", "/tr"];
+    const trackingPaths = [
+        "/pixel", "/pxl", "/seg", "/px", "/tr",
+        "/track", "/log", "/beacon", "/collect",
+        "/conversion", "/cnv", "/event", "/imp",
+        "/associate-segment", "/spp.pl",
+    ];
 
     if (trackingPaths.some(p => pathname === p || pathname.startsWith(p + "/"))) {
         return true;
