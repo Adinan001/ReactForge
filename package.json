@@ -4,6 +4,7 @@
   "description": "ReactForge - Web crawler e analisador de sites",
   "main": "src/index.js",
   "dependencies": {
+    "adm-zip": "^0.5.18",
     "axios": "^1.18.1",
     "cheerio": "^1.2.0",
     "commander": "^15.0.0",

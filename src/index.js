@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { startCrawler } from "./crawler/crawler.js";
 import { saveReport } from "./reports/reporter.js";
+import { exportZip } from "./export/zipExporter.js";
 
 const program = new Command();
 
@@ -13,6 +14,7 @@ program
     .option("--max-pages <n>", "Máximo de páginas a clonar", parseInt, 20)
     .option("--delay <ms>", "Delay entre requests em ms", parseInt, 0)
     .option("--quiet", "Reduzir output do terminal", false)
+    .option("--zip", "Gerar ZIP do site clonado", false)
     .action(async (url, options) => {
 
         console.clear();
@@ -43,6 +45,10 @@ program
 
         if (result) {
             saveReport(url, result.analysis);
+
+            if (options.zip) {
+                await exportZip(result.siteFolder);
+            }
         }
 
     });
