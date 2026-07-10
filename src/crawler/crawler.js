@@ -6,8 +6,11 @@ import { analyzeHTML } from "./analyzer.js";
 import { downloadAssets } from "./assetDownloader.js";
 import { crawlSite } from "./siteCrawler.js";
 import { rewriteHTML } from "./htmlRewriter.js";
+import { fetchWithBrowser, needsBrowser, closeBrowser } from "./browserFetcher.js";
 
-export async function startCrawler(url) {
+export async function startCrawler(url, options = {}) {
+
+    const { forceBrowser = false } = options;
 
     console.log("");
     console.log("🚀 Crawler iniciado");
@@ -15,14 +18,81 @@ export async function startCrawler(url) {
 
     try {
 
-        const response = await axios.get(url);
+        let html = null;
+        let status = 0;
+        let usedBrowser = false;
 
-        let html = response.data;
+        // ── Tentativa 1: Axios (rápido, sem custo) ──────────────────
 
-        console.log("");
-        console.log("✅ Site acessado com sucesso!");
-        console.log("📄 Status:", response.status);
-        console.log("📏 Tamanho HTML:", html.length, "caracteres");
+        if (!forceBrowser) {
+
+            try {
+
+                const response = await axios.get(url);
+                html = response.data;
+                status = response.status;
+
+                console.log("");
+                console.log("✅ Site acessado com sucesso!");
+                console.log("📄 Status:", status);
+                console.log("📏 Tamanho HTML:", html.length, "caracteres");
+
+                // Verifica se o conteúdo precisa de JS pra renderizar
+                if (needsBrowser(html)) {
+
+                    console.log("");
+                    console.log("🔍 Conteúdo dinâmico detectado (SPA/JS)");
+                    console.log("🌐 Alternando para Playwright...");
+
+                    const rendered = await fetchWithBrowser(url);
+
+                    if (rendered.data) {
+                        html = rendered.data;
+                        usedBrowser = true;
+                    }
+
+                }
+
+            } catch (axiosError) {
+
+                console.log("");
+                console.log("⚠️ Axios falhou:", axiosError.message);
+                console.log("🌐 Tentando com Playwright...");
+
+                const rendered = await fetchWithBrowser(url);
+
+                if (rendered.data) {
+                    html = rendered.data;
+                    status = rendered.status;
+                    usedBrowser = true;
+                } else {
+                    throw new Error("Não foi possível acessar o site: " + rendered.error);
+                }
+
+            }
+
+        } else {
+
+            // ── Modo forçado: Playwright direto ─────────────────────
+
+            console.log("");
+            console.log("🌐 Modo browser forçado");
+
+            const rendered = await fetchWithBrowser(url);
+
+            if (rendered.data) {
+                html = rendered.data;
+                status = rendered.status;
+                usedBrowser = true;
+            } else {
+                throw new Error("Não foi possível acessar o site: " + rendered.error);
+            }
+
+        }
+
+        if (usedBrowser) {
+            console.log("🌐 Renderizado via Playwright");
+        }
 
         const siteName = new URL(url).hostname.replace(/^www\./, "");
 
@@ -151,6 +221,12 @@ export async function startCrawler(url) {
         console.log("");
         console.log("✅ Total de páginas:", pages.length);
 
+        // ── Encerrar navegador se foi usado ─────────────────────────
+
+        if (usedBrowser) {
+            await closeBrowser();
+        }
+
         return {
             html,
             analysis,
@@ -159,6 +235,8 @@ export async function startCrawler(url) {
         };
 
     } catch (error) {
+
+        await closeBrowser();
 
         console.log("");
         console.log("❌ Erro:");
