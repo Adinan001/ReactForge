@@ -5,11 +5,20 @@ import { analyzeHTML } from "./analyzer.js";
 import { collectInternalLinks } from "./linkCollector.js";
 import { downloadAssets } from "./assetDownloader.js";
 import { rewriteHTML } from "./htmlRewriter.js";
+import { fetchRobotsTxt, isAllowed } from "./robotsParser.js";
 
 export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
 
     const visited = new Set();
     const queue = [startUrl];
+
+    // Carrega robots.txt uma vez
+    const robots = await fetchRobotsTxt(startUrl);
+    const delay = robots.crawlDelay || 0;
+
+    if (delay > 0) {
+        console.log(`⏱️ Crawl-Delay: ${delay / 1000}s entre requests`);
+    }
 
     while (queue.length > 0 && visited.size < maxPages) {
 
@@ -22,12 +31,24 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
             continue;
         }
 
+        // Verifica robots.txt
+        if (!isAllowed(currentUrl, robots)) {
+            console.log("");
+            console.log("🚫 Bloqueado por robots.txt:", currentUrl);
+            continue;
+        }
+
         visited.add(normalized);
 
         console.log("");
         console.log("📄 Página:", currentUrl);
 
         try {
+
+            // Respeita crawl-delay
+            if (delay > 0 && visited.size > 1) {
+                await sleep(delay);
+            }
 
             const response = await axios.get(currentUrl);
             let html = response.data;
@@ -93,5 +114,14 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
     console.log("✅ Páginas visitadas:", visited.size);
 
     return [...visited];
+
+}
+
+
+// ── Helper ──────────────────────────────────────────────────────────
+
+function sleep(ms) {
+
+    return new Promise(resolve => setTimeout(resolve, ms));
 
 }
