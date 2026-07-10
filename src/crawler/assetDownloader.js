@@ -53,7 +53,7 @@ export async function downloadAssets(baseUrl, assets, siteFolder) {
                     siteFolder
                 );
 
-                const rewritten = rewriteCSS(css);
+                const rewritten = rewriteCSS(css, url);
 
                 data = Buffer.from(rewritten, "utf8");
 

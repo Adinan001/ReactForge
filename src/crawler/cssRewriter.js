@@ -1,62 +1,84 @@
-import path from "path";
+import { resolveUrl } from "./urlResolver.js";
+import { getAssetPath } from "./fileOrganizer.js";
 
-export function rewriteCSS(cssContent) {
+export function rewriteCSS(cssContent, cssUrl) {
 
-    return cssContent.replace(
+    let rewritten = cssContent;
 
-        /url\((['"]?)(.*?)\1\)/g,
+    // ── @import ─────────────────────────────────────────────────────
 
-        (match, quote, url) => {
+    rewritten = rewritten.replace(
+        /@import\s+(?:url\(\s*(['"]?)(.*?)\1\s*\)|(['"])(.*?)\3)\s*;/g,
+        (match, q1, url1, q2, url2) => {
 
-            // ignora data:image
-            if (
-                url.startsWith("data:") ||
-                url.startsWith("#")
-            ) {
-                return match;
-            }
+            const url = (url1 || url2 || "").trim();
 
-            const file = path.basename(
-                url.split("?")[0]
-            );
+            if (!url || url.startsWith("data:")) return match;
 
-            if (!file) {
-                return match;
-            }
+            const absolute = resolveUrl(cssUrl, url);
+            if (!absolute) return match;
 
-            let folder = "media";
+            const localPath = getAssetPath(absolute).replace(/\\/g, "/");
+            const relativePath = buildRelativePath("assets/css", localPath);
 
-            const lower = file.toLowerCase();
-
-            if (
-                lower.endsWith(".woff") ||
-                lower.endsWith(".woff2") ||
-                lower.endsWith(".ttf") ||
-                lower.endsWith(".otf") ||
-                lower.endsWith(".eot")
-            ) {
-
-                folder = "fonts";
-
-            } else if (
-
-                lower.endsWith(".png") ||
-                lower.endsWith(".jpg") ||
-                lower.endsWith(".jpeg") ||
-                lower.endsWith(".gif") ||
-                lower.endsWith(".svg") ||
-                lower.endsWith(".webp")
-
-            ) {
-
-                folder = "images";
-
-            }
-
-            return `url("../${folder}/${file}")`;
+            return `@import url("${relativePath}");`;
 
         }
-
     );
+
+    // ── url() ───────────────────────────────────────────────────────
+
+    rewritten = rewritten.replace(
+        /url\(\s*(['"]?)(.*?)\1\s*\)/g,
+        (match, quote, url) => {
+
+            if (!url || url.startsWith("data:") || url.startsWith("#")) {
+                return match;
+            }
+
+            const absolute = resolveUrl(cssUrl, url);
+            if (!absolute) return match;
+
+            const localPath = getAssetPath(absolute).replace(/\\/g, "/");
+            const relativePath = buildRelativePath("assets/css", localPath);
+
+            return `url("${relativePath}")`;
+
+        }
+    );
+
+    return rewritten;
+
+}
+
+
+// ── Helper ──────────────────────────────────────────────────────────
+
+function buildRelativePath(fromDir, toPath) {
+
+    // fromDir: "assets/css" (onde o CSS está salvo)
+    // toPath:  "assets/images/logo.png" (onde o asset foi salvo)
+    // Resultado: "../images/logo.png"
+
+    const fromParts = fromDir.split("/");
+    const toParts = toPath.split("/");
+
+    // Remove partes comuns do início
+    let common = 0;
+    while (
+        common < fromParts.length &&
+        common < toParts.length &&
+        fromParts[common] === toParts[common]
+    ) {
+        common++;
+    }
+
+    // Sobe um nível pra cada pasta restante no fromDir
+    const ups = fromParts.length - common;
+    const remaining = toParts.slice(common);
+
+    const relative = "../".repeat(ups) + remaining.join("/");
+
+    return relative;
 
 }
