@@ -7,46 +7,62 @@ import { rewriteCSS } from "./cssRewriter.js";
 import { collectCSSAssets } from "./cssAssetCollector.js";
 import { getAssetPath, isTrackingUrl } from "./fileOrganizer.js";
 
+const MAX_CONCURRENT = 5;
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
+
 export async function downloadAssets(baseUrl, assets, siteFolder) {
+
+    // Prepara lista de downloads válidos
+    const tasks = [];
 
     for (const asset of assets) {
 
+        const url = resolveUrl(baseUrl, asset);
+
+        if (!url) continue;
+        if (isTrackingUrl(url)) continue;
+
+        const relativePath = getAssetPath(url);
+        if (!relativePath) continue;
+
+        const destination = path.join(siteFolder, relativePath);
+
+        if (fs.existsSync(destination)) continue;
+
+        tasks.push({ url, destination, baseUrl });
+
+    }
+
+    // Baixa em lotes paralelos
+    const chunks = chunkArray(tasks, MAX_CONCURRENT);
+
+    for (const chunk of chunks) {
+
+        const promises = chunk.map(task => downloadSingle(task, siteFolder));
+
+        await Promise.allSettled(promises);
+
+    }
+
+}
+
+async function downloadSingle(task, siteFolder) {
+
+    const { url, destination } = task;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+
         try {
 
-            const url = resolveUrl(baseUrl, asset);
+            fs.mkdirSync(path.dirname(destination), { recursive: true });
 
-            if (!url) {
-                continue;
-            }
-
-            // Ignora tracking pixels e analytics
-            if (isTrackingUrl(url)) {
-                continue;
-            }
-
-            const relativePath = getAssetPath(url);
-
-            // getAssetPath retorna null pra URLs de tracking
-            if (!relativePath) {
-                continue;
-            }
-
-            const destination = path.join(
-                siteFolder,
-                relativePath
-            );
-
-            fs.mkdirSync(
-                path.dirname(destination),
-                { recursive: true }
-            );
-
-            if (fs.existsSync(destination)) {
-                continue;
-            }
+            // Pula se outro download paralelo já criou o arquivo
+            if (fs.existsSync(destination)) return;
 
             const response = await axios.get(url, {
                 responseType: "arraybuffer",
+                timeout: 30000,
                 headers: {
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
                 },
@@ -54,7 +70,7 @@ export async function downloadAssets(baseUrl, assets, siteFolder) {
 
             let data = response.data;
 
-            // Processa arquivos CSS (incluindo Google Fonts CSS)
+            // Processa arquivos CSS
             const ext = path.extname(destination).toLowerCase();
             const isCSS = ext === ".css" || response.headers["content-type"]?.includes("text/css");
 
@@ -64,11 +80,8 @@ export async function downloadAssets(baseUrl, assets, siteFolder) {
 
                 const cssAssets = collectCSSAssets(css);
 
-                await downloadAssets(
-                    url,
-                    cssAssets,
-                    siteFolder
-                );
+                // CSS assets são baixados sequencialmente pra evitar recursão infinita
+                await downloadAssets(url, cssAssets, siteFolder);
 
                 const rewritten = rewriteCSS(css, url);
 
@@ -83,18 +96,49 @@ export async function downloadAssets(baseUrl, assets, siteFolder) {
                 path.relative(process.cwd(), destination)
             );
 
+            return;
+
         } catch (error) {
 
-            // Silencia erros de tracking e recursos não-essenciais
-            if (!isTrackingUrl(asset)) {
+            if (attempt < MAX_RETRIES) {
+
+                const delay = RETRY_DELAY * attempt;
+                await sleep(delay);
+
+            } else {
+
                 console.log(
-                    "⚠️ Não foi possível baixar:",
-                    asset
+                    "⚠️ Falhou após",
+                    MAX_RETRIES,
+                    "tentativas:",
+                    path.basename(destination)
                 );
+
             }
 
         }
 
     }
+
+}
+
+
+// ── Helpers ─────────────────────────────────────────────────────────
+
+function chunkArray(arr, size) {
+
+    const chunks = [];
+
+    for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+    }
+
+    return chunks;
+
+}
+
+function sleep(ms) {
+
+    return new Promise(resolve => setTimeout(resolve, ms));
 
 }
