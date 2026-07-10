@@ -28,24 +28,37 @@ O ReactForge acessa uma página web, analisa sua estrutura completa, baixa todos
 - Links SEO (canonical, alternate, hreflang)
 - Paginação (prev/next)
 
-### Download de Assets
-- CSS, JavaScript, imagens, favicons, manifest, fonts
-- Organização automática por tipo
+### Download Inteligente
+- Downloads paralelos (5 simultâneos) com retry e backoff exponencial
+- Organização automática por tipo (`assets/css`, `assets/js`, `assets/images`, `assets/fonts`)
 - Cache de downloads para evitar duplicatas
+- Filtro automático de tracking pixels e analytics (40+ hosts bloqueados)
+- Suporte a Google Fonts e Adobe Fonts
+- Respeito a robots.txt com crawl-delay
 
 ### Reescrita de URLs para Offline
 - Atributos: `src`, `href`, `poster`, `data-src`, `data-lazy`, `background`
 - Tags: `link`, `script`, `img`, `source`, `video`, `audio`, `iframe`, `object`, `embed`
 - `srcset` completo com descriptors preservados
 - Inline styles e tags `<style>` com `url()`
+- URLs dentro de arquivos CSS (background-image, @font-face, @import)
 - Meta tags Open Graph e Twitter Cards
+- Caminhos relativos calculados por profundidade da página
 - Remoção automática de `integrity` e `crossorigin`
+
+### Playwright (Sites Dinâmicos)
+- Detecção automática de SPAs (React, Vue, Next.js, Nuxt)
+- Fallback inteligente: Axios → Playwright quando necessário
+- Flag `--browser` para forçar renderização via navegador
+- Auto-scroll para capturar conteúdo com lazy loading
+- Wait for network idle
 
 ### Crawler Multi-Página
 - Varredura automática de links internos
 - Deduplicação de URLs com normalização de trailing slash
-- Limite configurável de páginas
+- Limite configurável de páginas (`--max-pages`)
 - Estrutura de diretórios espelhando o path original do site
+- Resumo de crawl interrompido (retoma automaticamente)
 
 ### Relatórios
 - Relatório JSON com análise completa
@@ -59,7 +72,7 @@ O ReactForge acessa uma página web, analisa sua estrutura completa, baixa todos
 - **JavaScript ES Modules** — Arquitetura modular
 - **Axios** — Requisições HTTP
 - **Cheerio** — Parser HTML
-- **File System API** — Manipulação de arquivos
+- **Playwright** — Renderização de sites dinâmicos
 
 ---
 
@@ -74,8 +87,26 @@ npm install
 ## 🚀 Uso
 
 ```bash
+# Clonagem básica
 node src/index.js https://site.com
+
+# Forçar renderização via Playwright
+node src/index.js https://site.com --browser
+
+# Limitar páginas e adicionar delay
+node src/index.js https://site.com --max-pages=10 --delay=500
+
+# Todas as opções
+node src/index.js https://site.com --browser --max-pages=50 --delay=200
 ```
+
+### Opções
+
+| Flag | Descrição | Padrão |
+|------|-----------|--------|
+| `--browser` | Forçar renderização via Playwright | Automático |
+| `--max-pages=N` | Máximo de páginas a clonar | 20 |
+| `--delay=ms` | Delay entre requests em milissegundos | 0 |
 
 O clone será salvo em `sites/<dominio>/` com toda a estrutura de assets organizada.
 
@@ -96,6 +127,9 @@ ReactForge/
 │   │   ├── crawler.js
 │   │   ├── siteCrawler.js
 │   │   ├── assetDownloader.js
+│   │   ├── browserFetcher.js
+│   │   ├── crawlState.js
+│   │   ├── robotsParser.js
 │   │   ├── cssAssetCollector.js
 │   │   ├── cssRewriter.js
 │   │   ├── downloadCache.js
@@ -115,22 +149,29 @@ ReactForge/
 
 ## 📌 Roadmap
 
-### ✅ Concluído
-- [x] Crawler básico com Axios
-- [x] Análise HTML completa
-- [x] Detecção de recursos especiais (favicons, manifest, Open Graph, JSON-LD)
+### ✅ Fase 1 — Fidelidade Visual
+- [x] Análise HTML completa com detecção de recursos especiais
 - [x] Download de CSS, JS, imagens, favicons, manifest, fonts
-- [x] Reescrita completa de URLs para funcionamento offline
-- [x] Crawler multi-página com deduplicação
-- [x] Organização de assets por tipo
-- [x] Relatório JSON
+- [x] Reescrita completa de URLs (HTML + CSS) para funcionamento offline
+- [x] Caminhos relativos por profundidade de página
+- [x] Suporte a Google Fonts e fontes externas
+
+### ✅ Fase 2 — Playwright
+- [x] Renderização JavaScript para SPAs
+- [x] Detecção automática de conteúdo dinâmico
+- [x] Auto-scroll para lazy loading
+- [x] Filtro de tracking pixels e analytics
+
+### ✅ Fase 3 — Download Inteligente
+- [x] Download paralelo (5 simultâneos) com retry
+- [x] Respeito a robots.txt com crawl-delay
+- [x] Rate limiting configurável (`--delay`)
+- [x] Resumo de crawl interrompido
 
 ### 🔜 Próximas Fases
-- [ ] **CSS Rewriter** — Reescrita de URLs dentro dos arquivos CSS
-- [ ] **Playwright** — Renderização JavaScript para SPAs
-- [ ] **CLI Profissional** — Flags: `--depth`, `--max-pages`, `--output`, `--timeout`
-- [ ] **Download Paralelo** — Concorrência controlada com retry e backoff
+- [ ] **CLI Profissional** — Commander.js com flags avançadas e barra de progresso
 - [ ] **Export** — ZIP, single-file HTML, PDF, relatório de cobertura
+- [ ] **Logs** — Log em arquivo, relatório JSON atualizado
 - [ ] **NPM Publish** — `npm install -g reactforge`
 - [ ] **Desktop GUI** — Interface gráfica com Electron ou Tauri
 
@@ -140,4 +181,4 @@ ReactForge/
 
 Este projeto está sob licença MIT.
 
-Desenvolvido por **Adinan Lima** — (https://github.com/Adinan001)
+Desenvolvido por **[Adinan Lima](https://github.com/Adinan001)**
