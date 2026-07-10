@@ -10,7 +10,7 @@ import { fetchWithBrowser, needsBrowser, closeBrowser } from "./browserFetcher.j
 
 export async function startCrawler(url, options = {}) {
 
-    const { forceBrowser = false } = options;
+    const { forceBrowser = false, delay = 0, maxPages = 20 } = options;
 
     console.log("");
     console.log("🚀 Crawler iniciado");
@@ -215,7 +215,8 @@ export async function startCrawler(url, options = {}) {
         const pages = await crawlSite(
             url,
             siteFolder,
-            20
+            maxPages,
+            delay
         );
 
         console.log("");

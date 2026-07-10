@@ -7,17 +7,17 @@ import { downloadAssets } from "./assetDownloader.js";
 import { rewriteHTML } from "./htmlRewriter.js";
 import { fetchRobotsTxt, isAllowed } from "./robotsParser.js";
 
-export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
+export async function crawlSite(startUrl, siteFolder, maxPages = 50, requestDelay = 0) {
 
     const visited = new Set();
     const queue = [startUrl];
 
     // Carrega robots.txt uma vez
     const robots = await fetchRobotsTxt(startUrl);
-    const delay = robots.crawlDelay || 0;
+    const delay = Math.max(robots.crawlDelay || 0, requestDelay);
 
     if (delay > 0) {
-        console.log(`⏱️ Crawl-Delay: ${delay / 1000}s entre requests`);
+        console.log(`⏱️ Delay: ${delay}ms entre requests`);
     }
 
     while (queue.length > 0 && visited.size < maxPages) {
@@ -45,7 +45,7 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50) {
 
         try {
 
-            // Respeita crawl-delay
+            // Respeita delay (crawl-delay ou --delay)
             if (delay > 0 && visited.size > 1) {
                 await sleep(delay);
             }
