@@ -7,8 +7,9 @@ import { downloadAssets } from "./assetDownloader.js";
 import { rewriteHTML } from "./htmlRewriter.js";
 import { fetchRobotsTxt, isAllowed } from "./robotsParser.js";
 import { saveState, loadState, clearState } from "./crawlState.js";
+import { ProgressBar } from "./progress.js";
 
-export async function crawlSite(startUrl, siteFolder, maxPages = 50, requestDelay = 0) {
+export async function crawlSite(startUrl, siteFolder, maxPages = 50, requestDelay = 0, quiet = false) {
 
     let visited;
     let queue;
@@ -38,6 +39,8 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50, requestDela
         console.log(`⏱️ Delay: ${delay}ms entre requests`);
     }
 
+    const progress = quiet ? new ProgressBar(maxPages, "🕷️ Crawl") : null;
+
     try {
 
         while (queue.length > 0 && visited.size < maxPages) {
@@ -53,15 +56,26 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50, requestDela
 
             // Verifica robots.txt
             if (!isAllowed(currentUrl, robots)) {
-                console.log("");
-                console.log("🚫 Bloqueado por robots.txt:", currentUrl);
+                if (!quiet) {
+                    console.log("");
+                    console.log("🚫 Bloqueado por robots.txt:", currentUrl);
+                }
                 continue;
             }
 
             visited.add(normalized);
 
-            console.log("");
-            console.log("📄 Página:", currentUrl);
+            if (quiet) {
+
+                const pageName = new URL(currentUrl).pathname || "/";
+                progress.update(visited.size, pageName);
+
+            } else {
+
+                console.log("");
+                console.log("📄 Página:", currentUrl);
+
+            }
 
             try {
 
@@ -112,7 +126,9 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50, requestDela
                 fs.mkdirSync(path.dirname(fullPath), { recursive: true });
                 fs.writeFileSync(fullPath, html);
 
-                console.log("💾", fullPath);
+                if (!quiet) {
+                    console.log("💾", fullPath);
+                }
 
                 // Coleta links internos pra continuar o crawl
                 const internalLinks = collectInternalLinks(currentUrl, analysis.links);
@@ -130,7 +146,9 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50, requestDela
                 }
 
             } catch (error) {
-                console.log("⚠️ Erro:", error.message);
+                if (!quiet) {
+                    console.log("⚠️ Erro:", error.message);
+                }
             }
 
         }
@@ -149,8 +167,12 @@ export async function crawlSite(startUrl, siteFolder, maxPages = 50, requestDela
 
     }
 
-    console.log("");
-    console.log("✅ Páginas visitadas:", visited.size);
+    if (quiet) {
+        progress.finish(`Crawl concluído — ${visited.size} páginas`);
+    } else {
+        console.log("");
+        console.log("✅ Páginas visitadas:", visited.size);
+    }
 
     return [...visited];
 

@@ -38,6 +38,7 @@ program
             forceBrowser: options.browser,
             delay: options.delay,
             maxPages: options.maxPages,
+            quiet: options.quiet,
         });
 
         if (result) {
