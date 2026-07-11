@@ -1,0 +1,106 @@
+ReactForge — Log de clonagem
+Início: 2026-07-11T20:43:32.911Z
+==================================================
+
+🚀 Crawler iniciado
+🌎 Baixando: https://getbootstrap.com
+✅ Site acessado com sucesso!
+📄 Status: 200
+📏 Tamanho HTML: 81274 caracteres
+========== ANÁLISE ==========
+🏷️  Título: Bootstrap · The most popular HTML, CSS, and JS library in the world.
+🔗 Links encontrados: 86
+🎨 CSS encontrados: 2
+📜 Scripts encontrados: 6
+🖼️  Imagens encontradas: 7
+─── Recursos Especiais ───
+  🔖 Favicons: 5
+  📋 Manifest: 1
+  🔗 Preconnect: 1
+  🔍 SEO Links: 1
+  📱 Open Graph: 8
+=============================
+🔖 Favicons:
+  apple-touch-icon → /docs/5.3/assets/img/favicons/apple-touch-icon.png (180x180)
+  icon → /docs/5.3/assets/img/favicons/favicon-32x32.png (32x32)
+  icon → /docs/5.3/assets/img/favicons/favicon-16x16.png (16x16)
+  mask-icon → /docs/5.3/assets/img/favicons/safari-pinned-tab.svg
+  icon → /docs/5.3/assets/img/favicons/favicon.ico
+📋 Manifest: /docs/5.3/assets/img/favicons/manifest.json
+🔗 Preconnect:
+  → https://AK7KMZKZHQ-dsn.algolia.net
+📱 Open Graph:
+  url: https://getbootstrap.com/
+  title: Bootstrap
+  description: Powerful, extensible, and feature-packed frontend toolkit. Build and customize with Sass, utilize prebuilt grid system and components, and bring projects to life with powerful JavaScript plugins.
+  type: website
+  image: https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-social.png
+  image:type: image/png
+  image:width: 2000
+  image:height: 1000
+⬇️ clones\getbootstrap.com\assets\css\_slug_.CJzlHdSW.css
+⬇️ clones\getbootstrap.com\assets\css\bootstrap.min.css
+⬇️ clones\getbootstrap.com\assets\js\color-modes.js
+⬇️ clones\getbootstrap.com\assets\js\Code.astro_astro_type_script_index_0_lang.jwvOqc1M.js
+⬇️ clones\getbootstrap.com\assets\js\script.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap.bundle.min.js
+⬇️ clones\getbootstrap.com\assets\js\Scripts.astro_astro_type_script_index_0_lang.B072HICR.js
+⬇️ clones\getbootstrap.com\assets\images\bootstrap-logo-shadow.png
+⬇️ clones\getbootstrap.com\assets\images\bootstrap-logo-shadow@2x.png
+⬇️ clones\getbootstrap.com\assets\images\parcel.png
+⬇️ clones\getbootstrap.com\assets\images\webpack.svg
+⬇️ clones\getbootstrap.com\assets\images\vite.svg
+⬇️ clones\getbootstrap.com\assets\images\bootstrap-icons@2x.png
+⬇️ clones\getbootstrap.com\assets\images\bootstrap-icons.png
+⬇️ clones\getbootstrap.com\assets\images\favicon-32x32.png
+⬇️ clones\getbootstrap.com\assets\images\favicon-16x16.png
+⬇️ clones\getbootstrap.com\assets\images\safari-pinned-tab.svg
+⬇️ clones\getbootstrap.com\assets\images\favicon.ico
+⬇️ clones\getbootstrap.com\assets\images\apple-touch-icon.png
+⬇️ clones\getbootstrap.com\assets\others\manifest.json
+💾 HTML salvo: clones\getbootstrap.com\index.html
+🕷️ Iniciando varredura das páginas...
+🤖 robots.txt carregado: 0 regras
+⬇️ clones\getbootstrap.com\assets\css\prettify.css
+⬇️ clones\getbootstrap.com\assets\images\glyphicons-halflings-white.png
+⬇️ clones\getbootstrap.com\assets\images\glyphicons-halflings-white.png
+⬇️ clones\getbootstrap.com\assets\images\bs-docs-masthead-pattern.png
+⬇️ clones\getbootstrap.com\assets\css\docs.css
+⬇️ clones\getbootstrap.com\assets\css\bootstrap-responsive.css
+⬇️ clones\getbootstrap.com\assets\images\glyphicons-halflings.png
+⬇️ clones\getbootstrap.com\assets\css\bootstrap.css
+⬇️ clones\getbootstrap.com\assets\js\jquery.js
+⬇️ clones\getbootstrap.com\assets\js\widgets.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-transition.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-modal.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-alert.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-dropdown.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-tooltip.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-scrollspy.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-tab.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-popover.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-affix.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-carousel.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-button.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-collapse.js
+⬇️ clones\getbootstrap.com\assets\js\bootstrap-typeahead.js
+⬇️ clones\getbootstrap.com\assets\js\holder.js
+⬇️ clones\getbootstrap.com\assets\js\application.js
+⬇️ clones\getbootstrap.com\assets\js\prettify.js
+⬇️ clones\getbootstrap.com\assets\images\bs-docs-twitter-github.png
+⬇️ clones\getbootstrap.com\assets\images\bs-docs-responsive-illustrations.png
+⬇️ clones\getbootstrap.com\assets\images\bs-docs-bootstrap-features.png
+⬇️ clones\getbootstrap.com\assets\images\soundready.png
+⬇️ clones\getbootstrap.com\assets\images\kippt.png
+⬇️ clones\getbootstrap.com\assets\images\jshint.png
+⬇️ clones\getbootstrap.com\assets\images\gathercontent.png
+⬇️ clones\getbootstrap.com\assets\images\favicon.png
+⬇️ clones\getbootstrap.com\assets\images\apple-touch-icon-144-precomposed.png
+⬇️ clones\getbootstrap.com\assets\images\apple-touch-icon-114-precomposed.png
+⬇️ clones\getbootstrap.com\assets\images\apple-touch-icon-72-precomposed.png
+⬇️ clones\getbootstrap.com\assets\images\apple-touch-icon-57-precomposed.png
+✅ Crawl concluído — 2 páginas
+✅ Total de páginas: 2
+
+==================================================
+Fim: 2026-07-11T20:43:35.816Z

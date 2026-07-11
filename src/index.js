@@ -16,6 +16,8 @@ program
     .option("--browser", "Forçar renderização via Playwright", false)
     .option("--max-pages <n>", "Máximo de páginas a clonar", parseInt, 20)
     .option("--delay <ms>", "Delay entre requests em ms", parseInt, 0)
+    .option("--output <dir>", "Pasta de saída (padrão: sites/)")
+    .option("--user-agent <string>", "User-Agent customizado")
     .option("--quiet", "Reduzir output do terminal", false)
     .option("--zip", "Gerar ZIP do site clonado", false)
     .option("--single-file", "Gerar HTML único com tudo inline", false)
@@ -40,6 +42,14 @@ program
             console.log(`⏱️  Delay: ${options.delay}ms entre requests`);
         }
 
+        if (options.output) {
+            console.log(`📁 Saída: ${options.output}`);
+        }
+
+        if (options.userAgent) {
+            console.log(`🕵️  User-Agent: ${options.userAgent}`);
+        }
+
         console.log(`📄 Máximo de páginas: ${options.maxPages}`);
 
         resetCoverage();
@@ -49,6 +59,8 @@ program
             delay: options.delay,
             maxPages: options.maxPages,
             quiet: options.quiet,
+            output: options.output,
+            userAgent: options.userAgent,
         });
 
         if (result) {

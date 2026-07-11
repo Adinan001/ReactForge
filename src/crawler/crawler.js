@@ -11,10 +11,11 @@ import { initLogger, closeLogger } from "../utils/logger.js";
 
 export async function startCrawler(url, options = {}) {
 
-    const { forceBrowser = false, delay = 0, maxPages = 20, quiet = false } = options;
+    const { forceBrowser = false, delay = 0, maxPages = 20, quiet = false, output = null, userAgent = null } = options;
 
     const siteName = new URL(url).hostname.replace(/^www\./, "");
-    const siteFolder = path.join("sites", siteName);
+    const baseDir = output || "sites";
+    const siteFolder = path.join(baseDir, siteName);
 
     fs.mkdirSync(siteFolder, { recursive: true });
 
@@ -31,13 +32,18 @@ export async function startCrawler(url, options = {}) {
         let status = 0;
         let usedBrowser = false;
 
+        // User-Agent padrão ou customizado
+        const ua = userAgent || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
         // ── Tentativa 1: Axios (rápido, sem custo) ──────────────────
 
         if (!forceBrowser) {
 
             try {
 
-                const response = await axios.get(url);
+                const response = await axios.get(url, {
+                    headers: { "User-Agent": ua },
+                });
                 html = response.data;
                 status = response.status;
 
@@ -53,7 +59,7 @@ export async function startCrawler(url, options = {}) {
                     console.log("🔍 Conteúdo dinâmico detectado (SPA/JS)");
                     console.log("🌐 Alternando para Playwright...");
 
-                    const rendered = await fetchWithBrowser(url);
+                    const rendered = await fetchWithBrowser(url, { userAgent: ua });
 
                     if (rendered.data) {
                         html = rendered.data;
@@ -68,7 +74,7 @@ export async function startCrawler(url, options = {}) {
                 console.log("⚠️ Axios falhou:", axiosError.message);
                 console.log("🌐 Tentando com Playwright...");
 
-                const rendered = await fetchWithBrowser(url);
+                const rendered = await fetchWithBrowser(url, { userAgent: ua });
 
                 if (rendered.data) {
                     html = rendered.data;
@@ -87,7 +93,7 @@ export async function startCrawler(url, options = {}) {
             console.log("");
             console.log("🌐 Modo browser forçado");
 
-            const rendered = await fetchWithBrowser(url);
+            const rendered = await fetchWithBrowser(url, { userAgent: ua });
 
             if (rendered.data) {
                 html = rendered.data;
