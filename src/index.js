@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { startCrawler } from "./crawler/crawler.js";
 import { saveReport } from "./reports/reporter.js";
 import { exportZip } from "./export/zipExporter.js";
+import { exportSingleFile } from "./export/singleFileExporter.js";
 
 const program = new Command();
 
@@ -15,6 +16,7 @@ program
     .option("--delay <ms>", "Delay entre requests em ms", parseInt, 0)
     .option("--quiet", "Reduzir output do terminal", false)
     .option("--zip", "Gerar ZIP do site clonado", false)
+    .option("--single-file", "Gerar HTML único com tudo inline", false)
     .action(async (url, options) => {
 
         console.clear();
@@ -48,6 +50,10 @@ program
 
             if (options.zip) {
                 await exportZip(result.siteFolder);
+            }
+
+            if (options.singleFile) {
+                exportSingleFile(result.siteFolder);
             }
         }
 
