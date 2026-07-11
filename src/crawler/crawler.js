@@ -7,10 +7,19 @@ import { downloadAssets } from "./assetDownloader.js";
 import { crawlSite } from "./siteCrawler.js";
 import { rewriteHTML } from "./htmlRewriter.js";
 import { fetchWithBrowser, needsBrowser, closeBrowser } from "./browserFetcher.js";
+import { initLogger, closeLogger } from "../utils/logger.js";
 
 export async function startCrawler(url, options = {}) {
 
     const { forceBrowser = false, delay = 0, maxPages = 20, quiet = false } = options;
+
+    const siteName = new URL(url).hostname.replace(/^www\./, "");
+    const siteFolder = path.join("sites", siteName);
+
+    fs.mkdirSync(siteFolder, { recursive: true });
+
+    // Inicia logger em arquivo
+    initLogger(siteFolder);
 
     console.log("");
     console.log("🚀 Crawler iniciado");
@@ -93,14 +102,6 @@ export async function startCrawler(url, options = {}) {
         if (usedBrowser) {
             console.log("🌐 Renderizado via Playwright");
         }
-
-        const siteName = new URL(url).hostname.replace(/^www\./, "");
-
-        const siteFolder = path.join("sites", siteName);
-
-        fs.mkdirSync(siteFolder, {
-            recursive: true
-        });
 
         const analysis = analyzeHTML(html);
 
@@ -223,11 +224,13 @@ export async function startCrawler(url, options = {}) {
         console.log("");
         console.log("✅ Total de páginas:", pages.length);
 
-        // ── Encerrar navegador se foi usado ─────────────────────────
+        // ── Encerrar ────────────────────────────────────────────────
 
         if (usedBrowser) {
             await closeBrowser();
         }
+
+        closeLogger();
 
         return {
             html,
@@ -239,6 +242,7 @@ export async function startCrawler(url, options = {}) {
     } catch (error) {
 
         await closeBrowser();
+        closeLogger();
 
         console.log("");
         console.log("❌ Erro:");
