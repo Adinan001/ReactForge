@@ -4,6 +4,7 @@ import { saveReport } from "./reports/reporter.js";
 import { exportZip } from "./export/zipExporter.js";
 import { exportSingleFile } from "./export/singleFileExporter.js";
 import { exportPdf } from "./export/pdfExporter.js";
+import { generateCoverage, resetCoverage } from "./export/coverageReport.js";
 
 const program = new Command();
 
@@ -19,6 +20,7 @@ program
     .option("--zip", "Gerar ZIP do site clonado", false)
     .option("--single-file", "Gerar HTML único com tudo inline", false)
     .option("--pdf", "Gerar PDF do site clonado", false)
+    .option("--coverage", "Gerar relatório de cobertura", false)
     .action(async (url, options) => {
 
         console.clear();
@@ -40,6 +42,8 @@ program
 
         console.log(`📄 Máximo de páginas: ${options.maxPages}`);
 
+        resetCoverage();
+
         const result = await startCrawler(url, {
             forceBrowser: options.browser,
             delay: options.delay,
@@ -49,6 +53,10 @@ program
 
         if (result) {
             saveReport(url, result.analysis);
+
+            if (options.coverage) {
+                generateCoverage(result.siteFolder, result.analysis);
+            }
 
             if (options.zip) {
                 await exportZip(result.siteFolder);

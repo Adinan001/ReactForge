@@ -6,6 +6,7 @@ import { resolveUrl } from "./urlResolver.js";
 import { rewriteCSS } from "./cssRewriter.js";
 import { collectCSSAssets } from "./cssAssetCollector.js";
 import { getAssetPath, isTrackingUrl } from "./fileOrganizer.js";
+import { trackDownload } from "../export/coverageReport.js";
 
 const MAX_CONCURRENT = 5;
 const MAX_RETRIES = 3;
@@ -91,6 +92,8 @@ async function downloadSingle(task, siteFolder) {
 
             fs.writeFileSync(destination, data);
 
+            trackDownload(url, destination, true);
+
             console.log(
                 "⬇️",
                 path.relative(process.cwd(), destination)
@@ -106,6 +109,8 @@ async function downloadSingle(task, siteFolder) {
                 await sleep(delay);
 
             } else {
+
+                trackDownload(url, destination, false);
 
                 console.log(
                     "⚠️ Falhou após",
