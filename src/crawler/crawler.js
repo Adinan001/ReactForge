@@ -22,9 +22,11 @@ export async function startCrawler(url, options = {}) {
     // Inicia logger em arquivo
     initLogger(siteFolder);
 
-    console.log("");
-    console.log("🚀 Crawler iniciado");
-    console.log("🌎 Baixando:", url);
+    if (!quiet) {
+        console.log("");
+        console.log("🚀 Crawler iniciado");
+        console.log("🌎 Baixando:", url);
+    }
 
     try {
 
@@ -47,17 +49,21 @@ export async function startCrawler(url, options = {}) {
                 html = response.data;
                 status = response.status;
 
-                console.log("");
-                console.log("✅ Site acessado com sucesso!");
-                console.log("📄 Status:", status);
-                console.log("📏 Tamanho HTML:", html.length, "caracteres");
+                if (!quiet) {
+                    console.log("");
+                    console.log("✅ Site acessado com sucesso!");
+                    console.log("📄 Status:", status);
+                    console.log("📏 Tamanho HTML:", html.length, "caracteres");
+                }
 
                 // Verifica se o conteúdo precisa de JS pra renderizar
                 if (needsBrowser(html)) {
 
-                    console.log("");
-                    console.log("🔍 Conteúdo dinâmico detectado (SPA/JS)");
-                    console.log("🌐 Alternando para Playwright...");
+                    if (!quiet) {
+                        console.log("");
+                        console.log("🔍 Conteúdo dinâmico detectado (SPA/JS)");
+                        console.log("🌐 Alternando para Playwright...");
+                    }
 
                     const rendered = await fetchWithBrowser(url, { userAgent: ua });
 
@@ -70,9 +76,11 @@ export async function startCrawler(url, options = {}) {
 
             } catch (axiosError) {
 
-                console.log("");
-                console.log("⚠️ Axios falhou:", axiosError.message);
-                console.log("🌐 Tentando com Playwright...");
+                if (!quiet) {
+                    console.log("");
+                    console.log("⚠️ Axios falhou:", axiosError.message);
+                    console.log("🌐 Tentando com Playwright...");
+                }
 
                 const rendered = await fetchWithBrowser(url, { userAgent: ua });
 
@@ -90,8 +98,10 @@ export async function startCrawler(url, options = {}) {
 
             // ── Modo forçado: Playwright direto ─────────────────────
 
-            console.log("");
-            console.log("🌐 Modo browser forçado");
+            if (!quiet) {
+                console.log("");
+                console.log("🌐 Modo browser forçado");
+            }
 
             const rendered = await fetchWithBrowser(url, { userAgent: ua });
 
@@ -105,71 +115,75 @@ export async function startCrawler(url, options = {}) {
 
         }
 
-        if (usedBrowser) {
+        if (!quiet && usedBrowser) {
             console.log("🌐 Renderizado via Playwright");
         }
 
         const analysis = analyzeHTML(html);
 
-        // ── Log da análise básica ───────────────────────────────────
+        if (!quiet) {
 
-        console.log("");
-        console.log("========== ANÁLISE ==========");
-        console.log("🏷️  Título:", analysis.title);
-        console.log("🔗 Links encontrados:", analysis.summary.links);
-        console.log("🎨 CSS encontrados:", analysis.summary.css);
-        console.log("📜 Scripts encontrados:", analysis.summary.scripts);
-        console.log("🖼️  Imagens encontradas:", analysis.summary.images);
+            // ── Log da análise básica ───────────────────────────────
 
-        // ── Log dos recursos especiais ──────────────────────────────
+            console.log("");
+            console.log("========== ANÁLISE ==========");
+            console.log("🏷️  Título:", analysis.title);
+            console.log("🔗 Links encontrados:", analysis.summary.links);
+            console.log("🎨 CSS encontrados:", analysis.summary.css);
+            console.log("📜 Scripts encontrados:", analysis.summary.scripts);
+            console.log("🖼️  Imagens encontradas:", analysis.summary.images);
 
-        const specialKeys = Object.keys(analysis.summary).filter(
-            k => !["links", "css", "scripts", "images"].includes(k)
-        );
+            // ── Log dos recursos especiais ──────────────────────────
 
-        if (specialKeys.length > 0) {
+            const specialKeys = Object.keys(analysis.summary).filter(
+                k => !["links", "css", "scripts", "images"].includes(k)
+            );
 
-            console.log("─── Recursos Especiais ───");
+            if (specialKeys.length > 0) {
 
-            for (const key of specialKeys) {
-                console.log(`  ${key}: ${analysis.summary[key]}`);
+                console.log("─── Recursos Especiais ───");
+
+                for (const key of specialKeys) {
+                    console.log(`  ${key}: ${analysis.summary[key]}`);
+                }
+
             }
 
-        }
+            console.log("=============================");
 
-        console.log("=============================");
+            // ── Log detalhado dos recursos ──────────────────────────
 
-        // ── Log detalhado dos recursos ──────────────────────────────
+            const res = analysis.resources;
 
-        const res = analysis.resources;
-
-        if (res.favicons.length > 0) {
-            console.log("");
-            console.log("🔖 Favicons:");
-            for (const f of res.favicons) {
-                console.log(`  ${f.rel} → ${f.href}${f.sizes ? ` (${f.sizes})` : ""}`);
+            if (res.favicons.length > 0) {
+                console.log("");
+                console.log("🔖 Favicons:");
+                for (const f of res.favicons) {
+                    console.log(`  ${f.rel} → ${f.href}${f.sizes ? ` (${f.sizes})` : ""}`);
+                }
             }
-        }
 
-        if (res.manifest) {
-            console.log("");
-            console.log("📋 Manifest:", res.manifest.href);
-        }
-
-        if (res.preconnect.length > 0) {
-            console.log("");
-            console.log("🔗 Preconnect:");
-            for (const p of res.preconnect) {
-                console.log(`  → ${p.href}`);
+            if (res.manifest) {
+                console.log("");
+                console.log("📋 Manifest:", res.manifest.href);
             }
-        }
 
-        if (res.openGraph) {
-            console.log("");
-            console.log("📱 Open Graph:");
-            for (const [key, value] of Object.entries(res.openGraph)) {
-                console.log(`  ${key}: ${value}`);
+            if (res.preconnect.length > 0) {
+                console.log("");
+                console.log("🔗 Preconnect:");
+                for (const p of res.preconnect) {
+                    console.log(`  → ${p.href}`);
+                }
             }
+
+            if (res.openGraph) {
+                console.log("");
+                console.log("📱 Open Graph:");
+                for (const [key, value] of Object.entries(res.openGraph)) {
+                    console.log(`  ${key}: ${value}`);
+                }
+            }
+
         }
 
         // ── Download dos assets ─────────────────────────────────────
@@ -181,6 +195,7 @@ export async function startCrawler(url, options = {}) {
         await downloadAssets(url, analysis.images, siteFolder);
 
         // Download dos favicons e manifest
+        const res = analysis.resources;
         const faviconUrls = res.favicons.map(f => f.href).filter(Boolean);
         if (faviconUrls.length > 0) {
             await downloadAssets(url, faviconUrls, siteFolder);
@@ -208,16 +223,18 @@ export async function startCrawler(url, options = {}) {
             html
         );
 
-        console.log("");
-        console.log(
-            "💾 HTML salvo:",
-            path.join(siteFolder, "index.html")
-        );
+        if (!quiet) {
+            console.log("");
+            console.log(
+                "💾 HTML salvo:",
+                path.join(siteFolder, "index.html")
+            );
+
+            console.log("");
+            console.log("🕷️ Iniciando varredura das páginas...");
+        }
 
         // ── Crawl das páginas ───────────────────────────────────────
-
-        console.log("");
-        console.log("🕷️ Iniciando varredura das páginas...");
 
         const pages = await crawlSite(
             url,
@@ -227,8 +244,10 @@ export async function startCrawler(url, options = {}) {
             quiet
         );
 
-        console.log("");
-        console.log("✅ Total de páginas:", pages.length);
+        if (!quiet) {
+            console.log("");
+            console.log("✅ Total de páginas:", pages.length);
+        }
 
         // ── Encerrar ────────────────────────────────────────────────
 
