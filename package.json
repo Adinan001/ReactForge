@@ -13,14 +13,17 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run"
   },
   "keywords": [
     "crawler",
     "web-scraping",
     "automation"
   ],
-  "author": "",
-  "license": "ISC",
-  "type": "module"
+  "author": "Adinan Lima",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "vitest": "^4.1.10"
+  }
 }

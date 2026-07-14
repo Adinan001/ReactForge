@@ -1,3 +1,6 @@
+![Tests]
+(https://github.com/Adinan001/ReactForge/actions/workflows/test.yml/badge.svg)
+
 # ReactForge 🚀
 
 Clonador de sites profissional desenvolvido em **Node.js** — 100% local, sem consumo de tokens ou APIs externas.
