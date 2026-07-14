@@ -5,6 +5,7 @@ import { exportZip } from "./export/zipExporter.js";
 import { exportSingleFile } from "./export/singleFileExporter.js";
 import { exportPdf } from "./export/pdfExporter.js";
 import { generateCoverage, resetCoverage } from "./export/coverageReport.js";
+import { analyzeBackend } from "./export/backendAnalyzer.js";
 
 const program = new Command();
 
@@ -23,6 +24,7 @@ program
     .option("--single-file", "Gerar HTML único com tudo inline", false)
     .option("--pdf", "Gerar PDF do site clonado", false)
     .option("--coverage", "Gerar relatório de cobertura", false)
+    .option("--analyze-backend", "Detectar necessidades de backend e gerar prompt", false)
     .action(async (url, options) => {
 
         console.clear();
@@ -68,6 +70,10 @@ program
 
             if (options.coverage) {
                 generateCoverage(result.siteFolder, result.analysis);
+            }
+
+            if (options.analyzeBackend) {
+                analyzeBackend(result.siteFolder);
             }
 
             if (options.zip) {
