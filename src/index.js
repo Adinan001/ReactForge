@@ -6,13 +6,20 @@ import { exportSingleFile } from "./export/singleFileExporter.js";
 import { exportPdf } from "./export/pdfExporter.js";
 import { generateCoverage, resetCoverage } from "./export/coverageReport.js";
 import { analyzeBackend } from "./export/backendAnalyzer.js";
+import { customizeSite } from "./customize/customizer.js";
 
 const program = new Command();
 
 program
     .name("reactforge")
     .description("🚀 ReactForge — Clonador de sites profissional, 100% local")
-    .version("1.0.0")
+    .version("1.0.0");
+
+// ── Comando: clone (padrão) ─────────────────────────────────────────
+
+program
+    .command("clone", { isDefault: true })
+    .description("Clonar um site")
     .argument("<url>", "URL do site a ser clonado")
     .option("--browser", "Forçar renderização via Playwright", false)
     .option("--max-pages <n>", "Máximo de páginas a clonar", parseInt, 20)
@@ -88,6 +95,23 @@ program
                 await exportPdf(result.siteFolder);
             }
         }
+
+    });
+
+// ── Comando: customize ──────────────────────────────────────────────
+
+program
+    .command("customize")
+    .description("Personalizar um site clonado (textos, cores, contatos)")
+    .argument("<folder>", "Pasta do site clonado (ex: sites/fgp-adv.vercel.app)")
+    .action(async (folder) => {
+
+        console.clear();
+        console.log("======================================");
+        console.log("        ReactForge  🎨");
+        console.log("======================================");
+
+        await customizeSite(folder);
 
     });
 
