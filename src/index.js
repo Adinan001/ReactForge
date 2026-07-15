@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Command } from "commander";
 import { startCrawler } from "./crawler/crawler.js";
 import { saveReport } from "./reports/reporter.js";

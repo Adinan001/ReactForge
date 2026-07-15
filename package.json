@@ -1,8 +1,11 @@
 {
   "name": "reactforge",
   "version": "1.0.0",
-  "description": "ReactForge - Web crawler e analisador de sites",
+  "description": "Clonador de sites profissional — 100% local, sem consumo de tokens ou APIs externas",
   "main": "src/index.js",
+  "bin": {
+    "reactforge": "src/index.js"
+  },
   "dependencies": {
     "adm-zip": "^0.5.18",
     "axios": "^1.18.1",
@@ -14,16 +17,37 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "postinstall": "npx playwright install chromium || true"
   },
   "keywords": [
     "crawler",
     "web-scraping",
-    "automation"
+    "site-cloner",
+    "website-cloner",
+    "playwright",
+    "offline",
+    "html",
+    "css",
+    "downloader",
+    "scraper"
   ],
   "author": "Adinan Lima",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Adinan001/ReactForge"
+  },
+  "homepage": "https://github.com/Adinan001/ReactForge#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
   "devDependencies": {
     "vitest": "^4.1.10"
   }
