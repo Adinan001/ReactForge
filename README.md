@@ -1,5 +1,4 @@
-![Tests]
-(https://github.com/Adinan001/ReactForge/actions/workflows/test.yml/badge.svg)
+![Tests](https://github.com/Adinan001/ReactForge/actions/workflows/test.yml/badge.svg)
 
 # ReactForge 🚀
 
@@ -8,6 +7,21 @@ Clonador de sites profissional desenvolvido em **Node.js** — 100% local, sem c
 O ReactForge acessa uma página web, analisa sua estrutura completa, baixa todos os recursos (CSS, JS, imagens, favicons, fonts, manifest) e reconstrói o site localmente com reescrita automática de caminhos para funcionamento offline.
 
 > **Por que ReactForge?** Clonadores baseados em IA (Claude Code + Playwright MCP) consomem centenas de milhares de tokens por execução. O ReactForge inverte essa lógica: o motor roda localmente sem custo, quantas vezes quiser.
+
+---
+
+## ⚠️ Aviso Importante
+
+Este projeto foi desenvolvido **exclusivamente para fins de estudo, aprendizado e pesquisa** em desenvolvimento web, engenharia de software e tecnologias de crawling.
+
+**Não utilize esta ferramenta para:**
+- Clonar sites com o intuito de se passar pelo proprietário original
+- Prática de phishing, falsificação de identidade ou fraudes
+- Violação de direitos autorais, marcas registradas ou propriedade intelectual
+- Qualquer atividade que viole leis locais, nacionais ou internacionais
+- Reproduzir sites sem autorização do proprietário
+
+**O uso ético e legal é de total responsabilidade do usuário.** O desenvolvedor não se responsabiliza por usos indevidos desta ferramenta. Ao utilizar o ReactForge, você concorda em respeitar os termos de serviço dos sites acessados e toda a legislação aplicável.
 
 ---
 
@@ -63,9 +77,25 @@ O ReactForge acessa uma página web, analisa sua estrutura completa, baixa todos
 - Estrutura de diretórios espelhando o path original do site
 - Resumo de crawl interrompido (retoma automaticamente)
 
-### Relatórios
-- Relatório JSON com análise completa
-- Log detalhado no terminal com seções organizadas
+### Export
+- ZIP do site completo (`--zip`)
+- Single-file HTML com tudo inline em base64 (`--single-file`)
+- PDF via Playwright (`--pdf`)
+- Relatório de cobertura (`--coverage`)
+
+### Análise de Backend
+- Detecção automática de formulários, APIs, autenticação e integrações
+- Geração de `backend-spec.json` com especificação estruturada
+- Geração de `prompt.md` pronto para colar em qualquer IA
+
+### Personalização Interativa
+- Troca de nome/título, WhatsApp, email e telefone via terminal
+- Detecção automática de cores do site com troca por paleta visual
+- 8 famílias de cores × 4 tonalidades + hex customizado
+
+### Docker
+- Dockerfile pronto para containerização
+- Roda sem instalar Node.js ou dependências localmente
 
 ---
 
@@ -76,6 +106,10 @@ O ReactForge acessa uma página web, analisa sua estrutura completa, baixa todos
 - **Axios** — Requisições HTTP
 - **Cheerio** — Parser HTML
 - **Playwright** — Renderização de sites dinâmicos
+- **Commander.js** — CLI profissional
+- **Inquirer** — Interface interativa no terminal
+- **Vitest** — Testes unitários
+- **Docker** — Containerização
 
 ---
 
@@ -87,20 +121,42 @@ cd ReactForge
 npm install
 ```
 
+### Via Docker
+
+```bash
+docker build -t reactforge .
+docker run --rm -v ${PWD}/sites:/app/sites reactforge https://site.com
+```
+
 ## 🚀 Uso
 
 ```bash
 # Clonagem básica
-node src/index.js https://site.com
+node src/index.js clone https://site.com
 
 # Forçar renderização via Playwright
-node src/index.js https://site.com --browser
+node src/index.js clone https://site.com --browser
 
 # Limitar páginas e adicionar delay
-node src/index.js https://site.com --max-pages=10 --delay=500
+node src/index.js clone https://site.com --max-pages=10 --delay=500
 
-# Todas as opções
-node src/index.js https://site.com --browser --max-pages=50 --delay=200
+# Modo silencioso com barra de progresso
+node src/index.js clone https://site.com --quiet
+
+# Exportar em múltiplos formatos
+node src/index.js clone https://site.com --zip --single-file --pdf
+
+# Relatório de cobertura
+node src/index.js clone https://site.com --coverage
+
+# Análise de backend
+node src/index.js clone https://site.com --analyze-backend
+
+# Personalizar site clonado
+node src/index.js customize sites/site.com
+
+# Pasta de saída customizada
+node src/index.js clone https://site.com --output=clones
 ```
 
 ### Opções
@@ -108,10 +164,16 @@ node src/index.js https://site.com --browser --max-pages=50 --delay=200
 | Flag | Descrição | Padrão |
 |------|-----------|--------|
 | `--browser` | Forçar renderização via Playwright | Automático |
-| `--max-pages=N` | Máximo de páginas a clonar | 20 |
-| `--delay=ms` | Delay entre requests em milissegundos | 0 |
-
-O clone será salvo em `sites/<dominio>/` com toda a estrutura de assets organizada.
+| `--max-pages <n>` | Máximo de páginas a clonar | 20 |
+| `--delay <ms>` | Delay entre requests em milissegundos | 0 |
+| `--output <dir>` | Pasta de saída | sites/ |
+| `--user-agent <string>` | User-Agent customizado | Chrome |
+| `--quiet` | Modo silencioso com barra de progresso | false |
+| `--zip` | Gerar ZIP do site clonado | false |
+| `--single-file` | Gerar HTML único com tudo inline | false |
+| `--pdf` | Gerar PDF do site clonado | false |
+| `--coverage` | Gerar relatório de cobertura | false |
+| `--analyze-backend` | Detectar necessidades de backend | false |
 
 ---
 
@@ -135,16 +197,39 @@ ReactForge/
 │   │   ├── robotsParser.js
 │   │   ├── cssAssetCollector.js
 │   │   ├── cssRewriter.js
-│   │   ├── downloadCache.js
 │   │   ├── fileOrganizer.js
 │   │   ├── linkCollector.js
+│   │   ├── progress.js
 │   │   └── urlResolver.js
+│   │
+│   ├── export/
+│   │   ├── zipExporter.js
+│   │   ├── singleFileExporter.js
+│   │   ├── pdfExporter.js
+│   │   ├── coverageReport.js
+│   │   └── backendAnalyzer.js
+│   │
+│   ├── customize/
+│   │   └── customizer.js
+│   │
+│   ├── utils/
+│   │   └── logger.js
 │   │
 │   └── reports/
 │       └── reporter.js
 │
-├── sites/
+├── tests/
+│   ├── analyzer.test.js
+│   ├── fileOrganizer.test.js
+│   └── urlResolver.test.js
+│
+├── .github/workflows/
+│   └── test.yml
+│
+├── Dockerfile
+├── .dockerignore
 ├── package.json
+├── LICENSE
 └── README.md
 ```
 
@@ -171,12 +256,40 @@ ReactForge/
 - [x] Rate limiting configurável (`--delay`)
 - [x] Resumo de crawl interrompido
 
-### 🔜 Próximas Fases
-- [ ] **CLI Profissional** — Commander.js com flags avançadas e barra de progresso
-- [ ] **Export** — ZIP, single-file HTML, PDF, relatório de cobertura
-- [ ] **Logs** — Log em arquivo, relatório JSON atualizado
-- [ ] **NPM Publish** — `npm install -g reactforge`
-- [ ] **Desktop GUI** — Interface gráfica com Electron ou Tauri
+### ✅ Fase 4 — CLI Profissional
+- [x] Commander.js com --help e --version
+- [x] Barra de progresso com ETA
+- [x] Modo --quiet
+
+### ✅ Fase 5 — Export
+- [x] ZIP do site completo
+- [x] Single-file HTML (tudo inline em base64)
+- [x] PDF via Playwright
+- [x] Relatório de cobertura
+
+### ✅ Fase 6 — Integridade e Logs
+- [x] Log em arquivo (clone-log.txt)
+- [x] --output para pasta de saída customizada
+- [x] --user-agent configurável
+- [x] --quiet completo
+
+### ✅ Fase 7 — Qualidade e Testes
+- [x] Testes unitários com Vitest (31 testes)
+- [x] GitHub Actions CI
+- [x] Badge "tests passing"
+
+### ✅ Fase 8 — Personalização e Backend
+- [x] Módulo customize interativo
+- [x] Análise de backend (formulários, APIs, auth, integrações)
+- [x] Geração de backend-spec.json + prompt.md
+
+### ✅ Fase 9 — Distribuição (parcial)
+- [x] Docker (Dockerfile + .dockerignore)
+- [x] Package.json preparado para NPM
+- [x] LICENSE MIT
+- [ ] NPM publish
+- [ ] Executável standalone (.exe)
+- [ ] Desktop GUI (Electron/Tauri)
 
 ---
 
